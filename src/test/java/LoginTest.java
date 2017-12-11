@@ -1,5 +1,3 @@
-import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -12,8 +10,11 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 public class LoginTest {
-    private WebDriver driver;
-    private WebDriverWait wait;
+    public static WebDriver driver;
+    public static LoginPage loginPage;
+    public static WebDriverWait wait;
+    public static UserPage userPage;
+    public static LoginPageFacebook loginPageFacebook;
     private String email;
     private String userName;
     private String PASSWORD_FB = "1!Qqqqqqqqq";
@@ -26,41 +27,41 @@ public class LoginTest {
     public void setUp() {
         System.setProperty("webdriver.chrome.driver", "C:/Users/vzhyber/IdeaProjects/TemplateMonster/drivers/chromedriver.exe");
         driver = new ChromeDriver();
+        loginPage = new LoginPage(driver);
+        userPage = new UserPage(driver);
+        loginPageFacebook = new LoginPageFacebook(driver);
+        wait =  new WebDriverWait(driver, 20);
         driver.manage().window().maximize();
         driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
-        wait = new WebDriverWait(driver, 20);
+
 
     }
     @Test(priority = 1)
     public void loginTestEmail() {
         driver.get("https://account.templatemonster.com/auth/");
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("[type*='email'"))).sendKeys(EMAIL);
-        driver.findElement(By.cssSelector("[type*='email'")).sendKeys(Keys.ENTER);
-        driver.findElement(By.cssSelector("[type*='password'")).sendKeys(PASSWORD);
-        driver.findElement(By.cssSelector("[type*='password'")).sendKeys(Keys.ENTER);
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("[class*='user-account-info__name t1'")));
-        email = driver.findElement(By.cssSelector("[class*='user-account-info__name t1'")).getText();
+        wait.until(ExpectedConditions.visibilityOf(loginPage.userEmail));
+        loginPage.loginTest(EMAIL,PASSWORD);
+        wait.until(ExpectedConditions.visibilityOf((userPage.email)));
+        email = userPage.getEmailText();
         Assert.assertEquals(EMAIL,email);
         driver.manage().deleteAllCookies();
     }
     @Test(priority = 2)
     public void loginTestFacebook() {
         driver.get("https://account.templatemonster.com/auth/");
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id=\"id-general-facebook-button\"]/button")));
-        driver.findElement(By.xpath("//*[@id=\"id-general-facebook-button\"]/button")).click();
+        wait.until(ExpectedConditions.visibilityOf(loginPageFacebook.clickFacebookButton));
+        loginPageFacebook.clickFacebookButton();
         ArrayList<String> newTab = new ArrayList<String>(driver.getWindowHandles());
         driver.switchTo().window(newTab.get(1));
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email"))).sendKeys(EMAIL_FB);
-        driver.findElement(By.id("pass")).sendKeys(PASSWORD_FB);
-        driver.findElement(By.cssSelector("[value*='Log In'")).click();
+        wait.until(ExpectedConditions.visibilityOf(loginPageFacebook.enterEmailFacebook));
+        loginPageFacebook.loginTestFaceBook(EMAIL_FB,PASSWORD_FB);
         driver.switchTo().window(newTab.get(0));
-              wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("[class*='user-account-info__name t1'")));
-        userName = driver.findElement(By.cssSelector("[class*='user-account-info__name t1'")).getText();
+        userName = userPage.getEmailText();
         Assert.assertEquals(USERNAME,userName);
     }
     @AfterTest
     public void tearDown(){
            if (driver!=null)
-               driver.quit();
+             driver.quit();
     }
 }
